@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#snackbar {
+  @apply rounded-sm text-base p-4 fixed text-center text-white invisible w-full max-w-xs;
+  background-color: rgba(51, 51, 51, 1);
+  z-index: 1;
+  top: 30px;
+}
+
+#snackbar.show {
+  @apply visible;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+from {
+  @apply opacity-100;
+  top: 30px;
+}

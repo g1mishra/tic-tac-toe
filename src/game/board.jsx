@@ -1,5 +1,5 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import Alert from "./alert";
 import Box from "./box";
 
 const win_Arr = [
@@ -40,7 +40,7 @@ const isWinner = (tempArr) => {
   for (const arr of win_Arr) {
     const [idx1, idx2, idx3] = arr;
     if (tempArr[idx1] && tempArr[idx1] === tempArr[idx2] && tempArr[idx2] === tempArr[idx3]) {
-      return tempArr[idx1] === option.user ? "You" : "Computer";
+      return tempArr[idx1] === option.user ? "user" : "computer";
     }
   }
 
@@ -48,12 +48,27 @@ const isWinner = (tempArr) => {
 };
 
 const Board = () => {
+  const [isAlert, setIsAlert] = useState(null);
+  const [stats, setStats] = useState({ computer: 0, user: 0 });
   const [gameState, setGameState] = useState(Array(9).fill(""));
   const [isNextX, setIsNextX] = useState(true);
 
   const resetgame = () => {
     setGameState(new Array(9).fill(null));
     setIsNextX(true);
+  };
+
+  const handleWinner = (tempArr) => {
+    let winner = isWinner(tempArr);
+    if (winner) {
+      setIsAlert(`The Winner is : ${winner === "user" ? "You" : "Computer"}`);
+      setStats((prev) => {
+        return { ...prev, [winner]: prev[winner] + 1 };
+      });
+      resetgame();
+      return true;
+    }
+    return false;
   };
 
   const handleChange = async (index) => {
@@ -65,39 +80,33 @@ const Board = () => {
     setIsNextX(false);
 
     await delay();
-
-    let winner = isWinner(tempArr);
-    if (winner) {
-      alert(`The Winner is : ${winner}`);
-      resetgame();
-      return;
-    }
-
+    if (handleWinner(tempArr)) return;
     // computer play
     const randomAvailableIndex = getComputerIndex(tempArr);
     if (randomAvailableIndex < 0) {
-      alert("Game Draw");
+      setIsAlert("Game Draw");
+      setStats((prev) => ({ ...prev, computer: prev.computer + 1, user: prev.user + 1 }));
       resetgame();
       return;
     }
-
     tempArr.splice(randomAvailableIndex, 1, option.comp);
     setGameState(tempArr);
     setIsNextX(true);
-
     await delay();
-
-    winner = isWinner(tempArr);
-    if (winner) {
-      alert(`The Winner is : ${winner}`);
-      resetgame();
-      return;
-    }
+    if (handleWinner(tempArr)) return;
   };
 
   return (
-    <div className="h-[90vh] w-full flex justify-center items-center">
-      <div className="grid grid-cols-3 gap-1">
+    <div className="h-[90vh] w-full flex flex-col gap-4 justify-center items-center uppercase text-sm">
+      {isAlert ? <Alert message={isAlert} close={() => setIsAlert(null)} /> : null}
+      <div className="flex flex-col w-full max-w-xs border rounded-md bg-gray-800 text-white">
+        <div className="flex border-b p-2 justify-center">Score Board</div>
+        <div className="flex justify-between gap-2 w-full p-2">
+          <p>Computer : {stats.computer}</p>
+          <p>You : {stats.user}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-0.5 max-w-xs w-full text-xl font-bold">
         {gameState.map((box, idx) => (
           <Box key={idx} value={box} onClick={() => handleChange(idx)} />
         ))}
