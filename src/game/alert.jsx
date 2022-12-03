@@ -15,7 +15,7 @@ const Alert = ({ message, close }) => {
       <span>{message}</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="svg-icon"
+        className="svg-icon cursor-pointer"
         style={{
           width: "1em",
           height: "1em",
