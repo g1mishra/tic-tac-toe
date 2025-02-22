@@ -26,15 +26,6 @@ const delay = () => {
   });
 };
 
-const getComputerIndex = (arr) => {
-  // filter X,0 value index
-  let tempArr = [...arr];
-  tempArr = tempArr.map((val, index) => (val === option.comp || val === option.user ? -1 : index));
-  tempArr = tempArr.filter((val) => val !== -1);
-  const randIndex = Math.floor(Math.random() * tempArr.length);
-  return tempArr.length ? tempArr[randIndex] : -1;
-};
-
 const isWinner = (tempArr) => {
   //  there are fixed index to win
   for (const arr of win_Arr) {
@@ -48,7 +39,7 @@ const isWinner = (tempArr) => {
 };
 
 const isBoardFull = (board) => {
-  return board.every(cell => cell !== "");
+  return board.every((cell) => cell !== "");
 };
 
 const getEmptyCells = (board) => {
@@ -60,14 +51,14 @@ const getEmptyCells = (board) => {
 
 const minimax = (board, depth, isMaximizing) => {
   const winner = isWinner(board);
-  
+
   if (winner === "computer") return 10 - depth;
   if (winner === "user") return depth - 10;
   if (isBoardFull(board)) return 0;
 
   if (isMaximizing) {
     let bestScore = -Infinity;
-    getEmptyCells(board).forEach(idx => {
+    getEmptyCells(board).forEach((idx) => {
       board[idx] = option.comp;
       const score = minimax(board, depth + 1, false);
       board[idx] = "";
@@ -76,7 +67,7 @@ const minimax = (board, depth, isMaximizing) => {
     return bestScore;
   } else {
     let bestScore = Infinity;
-    getEmptyCells(board).forEach(idx => {
+    getEmptyCells(board).forEach((idx) => {
       board[idx] = option.user;
       const score = minimax(board, depth + 1, true);
       board[idx] = "";
@@ -90,7 +81,7 @@ const getBestMove = (board) => {
   let bestScore = -Infinity;
   let bestMove = -1;
 
-  getEmptyCells(board).forEach(idx => {
+  getEmptyCells(board).forEach((idx) => {
     board[idx] = option.comp;
     const score = minimax(board, 0, false);
     board[idx] = "";
@@ -157,7 +148,7 @@ const Board = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4">
       <div className="h-[90vh] w-full flex flex-col gap-6 justify-center items-center">
         {isAlert ? <Alert message={isAlert} close={() => setIsAlert(null)} /> : null}
-        
+
         <div className="flex flex-col w-full max-w-xs rounded-xl bg-gray-700 shadow-lg overflow-hidden">
           <div className="flex border-b border-gray-600 p-3 justify-center bg-gray-800 text-white font-bold">
             Score Board
