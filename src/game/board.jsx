@@ -47,6 +47,62 @@ const isWinner = (tempArr) => {
   return null;
 };
 
+const isBoardFull = (board) => {
+  return board.every(cell => cell !== "");
+};
+
+const getEmptyCells = (board) => {
+  return board.reduce((acc, cell, idx) => {
+    if (!cell) acc.push(idx);
+    return acc;
+  }, []);
+};
+
+const minimax = (board, depth, isMaximizing) => {
+  const winner = isWinner(board);
+  
+  if (winner === "computer") return 10 - depth;
+  if (winner === "user") return depth - 10;
+  if (isBoardFull(board)) return 0;
+
+  if (isMaximizing) {
+    let bestScore = -Infinity;
+    getEmptyCells(board).forEach(idx => {
+      board[idx] = option.comp;
+      const score = minimax(board, depth + 1, false);
+      board[idx] = "";
+      bestScore = Math.max(score, bestScore);
+    });
+    return bestScore;
+  } else {
+    let bestScore = Infinity;
+    getEmptyCells(board).forEach(idx => {
+      board[idx] = option.user;
+      const score = minimax(board, depth + 1, true);
+      board[idx] = "";
+      bestScore = Math.min(score, bestScore);
+    });
+    return bestScore;
+  }
+};
+
+const getBestMove = (board) => {
+  let bestScore = -Infinity;
+  let bestMove = -1;
+
+  getEmptyCells(board).forEach(idx => {
+    board[idx] = option.comp;
+    const score = minimax(board, 0, false);
+    board[idx] = "";
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = idx;
+    }
+  });
+
+  return bestMove;
+};
+
 const Board = () => {
   const [isAlert, setIsAlert] = useState(null);
   const [stats, setStats] = useState({ computer: 0, user: 0 });
@@ -81,15 +137,16 @@ const Board = () => {
 
     await delay();
     if (handleWinner(tempArr)) return;
-    // computer play
-    const randomAvailableIndex = getComputerIndex(tempArr);
-    if (randomAvailableIndex < 0) {
+
+    // computer play - replace random move with optimal move
+    const bestMove = getBestMove(tempArr);
+    if (bestMove < 0) {
       setIsAlert("Game Draw");
       setStats((prev) => ({ ...prev, computer: prev.computer + 1, user: prev.user + 1 }));
       resetgame();
       return;
     }
-    tempArr.splice(randomAvailableIndex, 1, option.comp);
+    tempArr.splice(bestMove, 1, option.comp);
     setGameState(tempArr);
     setIsNextX(true);
     await delay();
@@ -97,19 +154,35 @@ const Board = () => {
   };
 
   return (
-    <div className="h-[90vh] w-full flex flex-col gap-4 justify-center items-center uppercase text-sm">
-      {isAlert ? <Alert message={isAlert} close={() => setIsAlert(null)} /> : null}
-      <div className="flex flex-col w-full max-w-xs border rounded-md bg-gray-800 text-white">
-        <div className="flex border-b p-2 justify-center">Score Board</div>
-        <div className="flex justify-between gap-2 w-full p-2">
-          <p>Computer : {stats.computer}</p>
-          <p>You : {stats.user}</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4">
+      <div className="h-[90vh] w-full flex flex-col gap-6 justify-center items-center">
+        {isAlert ? <Alert message={isAlert} close={() => setIsAlert(null)} /> : null}
+        
+        <div className="flex flex-col w-full max-w-xs rounded-xl bg-gray-700 shadow-lg overflow-hidden">
+          <div className="flex border-b border-gray-600 p-3 justify-center bg-gray-800 text-white font-bold">
+            Score Board
+          </div>
+          <div className="flex justify-between gap-2 w-full p-4 text-white">
+            <p className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-red-400"></span>
+              Computer: {stats.computer}
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-400"></span>
+              You: {stats.user}
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="grid grid-cols-3 gap-0.5 max-w-xs w-full text-xl font-bold">
-        {gameState.map((box, idx) => (
-          <Box key={idx} value={box} onClick={() => handleChange(idx)} />
-        ))}
+
+        <div className="text-white text-lg mb-4">
+          {isNextX ? "Your turn" : "Computer's turn..."}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 max-w-xs w-full text-xl font-bold p-4 bg-gray-700 rounded-xl">
+          {gameState.map((box, idx) => (
+            <Box key={idx} value={box} onClick={() => handleChange(idx)} />
+          ))}
+        </div>
       </div>
     </div>
   );
